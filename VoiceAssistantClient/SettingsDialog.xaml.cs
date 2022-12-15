@@ -62,11 +62,11 @@ namespace VoiceAssistantClient
         protected override void OnActivated(EventArgs e)
         {
             this.ConnectionProfileName = "Chatbot";
-            this.settings.Profile.SubscriptionKey = "e8f31f36b5e14b82863e6ba31d0073a1";
+            this.settings.Profile.SubscriptionKey = "967bc6109dcc48bb988e64efe0c8df6f";
             this.settings.Profile.SubscriptionKeyRegion = "southeastasia";
-            this.settings.Profile.CustomCommandsAppId = "2e88b6d0-4913-11eb-bfb3-47bd6d8065b2";
+            this.settings.Profile.CustomCommandsAppId = "b4085260-e49f-11ec-b937-23704d5470af";
             string _path = System.Windows.Forms.Application.StartupPath;
-            string _file = @"\d65b7a6b-2c88-49ab-a5f8-74bafff6b853.table";
+            string _file = @"\25aca6bf-e311-4123-bd1a-6c177478f302.table";
             _path = _path.Split(new string[] { @"\bin\" }, StringSplitOptions.None)[0];
             this.settings.Profile.WakeWordPath = _path + _file;
             this.settings.Profile.WakeWordEnabled = true;

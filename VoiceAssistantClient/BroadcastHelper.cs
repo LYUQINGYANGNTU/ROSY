@@ -9,6 +9,7 @@ using Microsoft.Win32;
 using System;
 using System.IO;
 using System.Diagnostics;
+using System.Windows.Forms;
 
 namespace VoiceAssistantClient
 {
@@ -83,6 +84,24 @@ namespace VoiceAssistantClient
                     InfoRetrieved = true;
                 }
             }
+        }
+
+        public static void RetrieveBroadcastInfo()
+        {
+            System.Windows.Forms.OpenFileDialog openDlg = new System.Windows.Forms.OpenFileDialog();
+
+            openDlg.Filter = "Image Files(*.jpg; *.jpeg; *.gif; *.bmp)|*.jpg; *.jpeg; *.gif; *.bmp";
+            if (openDlg.ShowDialog() == DialogResult.OK)
+            {
+                // display image in picture box  
+                GlobalData.BroadcastingImage = openDlg.FileName;
+            }
+            updatethescript();
+        }
+
+        public static void updatethescript()
+        {
+            BroadcastScript = GlobalData.broadcastscript;
         }
 
         public static void StartBroadcasting(string script)

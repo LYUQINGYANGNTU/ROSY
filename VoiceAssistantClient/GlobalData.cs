@@ -71,6 +71,14 @@ namespace VoiceAssistantClient
 
         public static UpperBodyHelper _motor;
 
+        public static bool remotemode = false;
+
+        public static List<string> visionmodels = new List<string>();
+
+        public static string broadcastscript;
+
+        public static bool interactionlock;
+
         public static bool isReached
         {
             get { return _isReached; }
@@ -261,6 +269,21 @@ namespace VoiceAssistantClient
         {
             TourDelayTimer.Stop();
             TourHelper.GoNextPoint(LocationCount);
+        }
+
+        public static void visionswitch(string modelname, string modelswitch)
+        {
+           switch (modelname)
+            {
+                case "fishing":
+                    break;
+                case "faultylamps":
+                    break;
+                case "kiteflying":
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.ComponentModel;
+using System.Windows.Forms;
 
 namespace VoiceAssistantClient
 {
@@ -18,7 +19,7 @@ namespace VoiceAssistantClient
         public static List<int> LocationDelay = new List<int>();// { 0, 0, 0, 0, 0, 0, 0, 0 };
 
         public static string CurrentGpoalLocation;
-        public static string StandByLocation = "start";
+        public static string StandByLocation = "Waypoint1";
 
         public static bool TourisInterruptedbyNavi = false;
 
@@ -34,33 +35,81 @@ namespace VoiceAssistantClient
 
         public static string CurrentArea;
 
+        public static String currentmap;
+
+        public static string nextmap;
+
 
         public static void GetTourInfo()
         {
-            LocationName = new List<string> { "start", "forest", "toilet", "maindoor" };
+            //LocationName = new List<string> { "start", "forest", "toilet", "maindoor" };
+            //LocationSpeech = new List<string> { "0", "0", "0", "0" };
+            //LocationDelay = new List<int> { 0, 0, 0, 0 };
+            LoadInformation();
+        }
+
+        public static void GetTourInfo(List<string> path)
+        {
+            LocationName = path;
             LocationSpeech = new List<string> { "0", "0", "0", "0" };
             LocationDelay = new List<int> { 0, 0, 0, 0 };
         }
 
+        public static void LoadInformation()
+        {
+
+            LocationName.Clear();
+            LocationSpeech.Clear();
+            LocationDelay.Clear();
+
+
+            //LocationName = new List<string> { "sample1", "sample2", "sample3", "sample4", "sample5", "sample6", "sample7" };
+            //LocationSpeech = new List<string> { "0", "0", "0", "0", "0", "0", "0" };
+            //LocationDelay = new List<int> { 0, 0, 0, 0, 0, 0, 0 };
+
+            for (int i = 1; i <= 198; i++)
+            {
+                LocationName.Add("Waypoint" + i.ToString());
+                LocationSpeech.Add("0");
+                LocationDelay.Add(0);
+                Debug.WriteLine("Waypoint" + i.ToString());
+            }
+        }
+
+        public static void SwitchArea()
+        {
+            if(currentmap == "A")
+            {
+                BaseHelper.ChangeMap("jl_route2:-1.843:12.560:0.023:1");
+            }
+            else if (currentmap == "B")
+            {
+                BaseHelper.ChangeMap("jl_route3:1.51:2.76:0.099:0.995");
+            }
+            else if (currentmap == "C")
+            {
+                BaseHelper.ChangeMap("jl_route1:214.905:739.815:-1:0.014");
+            }
+        }
+
         public static void GetTourInfo(string Area)
         {
-            if (Area == "outside")
-            {
-                LocationName = new List<string> { "Waypoint11", "Waypoint10", "Waypoint9", "Waypoint8", "greenwall", "femaletoilet", "entrance", "maletoilet", "reception", "window", "luncharea" }; //{ "start", "forest", "toilet", "maindoor", "firexit1", "firexit2", "exit", "sumatra"};
-                LocationSpeech = new List<string> { "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0" };//{ "0", "0", "0", "0", "0", "0", "0", "0"};
-                LocationDelay = new List<int> { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };//{ 0, 0, 0, 0, 0, 0, 0, 0 };
-            }
-            else if (Area == "inside")
-            {
-                LocationName = new List<string> { "start", "forest", "toilet", "maindoor", "firexit1", "firexit2", "exit", "sumatra" };
-                LocationSpeech = new List<string> { "0", "0", "0", "0", "0", "0", "0", "0" };
-                LocationDelay = new List<int> { 0, 0, 0, 0, 0, 0, 0, 0 };
-            }
-            else
-            {
-                Debug.WriteLine("Invalid Input");
-            }
-
+            //if (Area == "outside")
+            //{
+            //    LocationName = new List<string> { "Waypoint11", "Waypoint10", "Waypoint9", "Waypoint8", "greenwall", "femaletoilet", "entrance", "maletoilet", "reception", "window", "luncharea" }; //{ "start", "forest", "toilet", "maindoor", "firexit1", "firexit2", "exit", "sumatra"};
+            //    LocationSpeech = new List<string> { "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0" };//{ "0", "0", "0", "0", "0", "0", "0", "0"};
+            //    LocationDelay = new List<int> { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };//{ 0, 0, 0, 0, 0, 0, 0, 0 };
+            //}
+            //else if (Area == "inside")
+            //{
+            //    LocationName = new List<string> { "start", "forest", "toilet", "maindoor", "firexit1", "firexit2", "exit", "sumatra" };
+            //    LocationSpeech = new List<string> { "0", "0", "0", "0", "0", "0", "0", "0" };
+            //    LocationDelay = new List<int> { 0, 0, 0, 0, 0, 0, 0, 0 };
+            //}
+            //else
+            //{
+            //    Debug.WriteLine("Invalid Input");
+            //}
         }
 
         public static void GoFirstPoint()

@@ -64,7 +64,8 @@ namespace VoiceAssistantClient
     using System.Windows.Media;
     using System.Windows.Media.Imaging;
     using System.Drawing;
-    //using System.Text.Json;
+    using Microsoft.Azure.Devices.Client;
+    using Microsoft.Azure.Devices;
 
     /// <summary>
     /// Interaction logic for MainWindow.xaml.
@@ -105,9 +106,9 @@ namespace VoiceAssistantClient
 
         System.Timers.Timer facdelayTimer = new System.Timers.Timer();
 
-        System.Timers.Timer ChatbotRestartTimer = new System.Timers.Timer();
+        public static System.Timers.Timer ChatbotRestartTimer = new System.Timers.Timer();
 
-        System.Timers.Timer NaviResumeTimer = new System.Timers.Timer();
+        public static System.Timers.Timer NaviResumeTimer = new System.Timers.Timer();
 
         System.Timers.Timer TourResumeTimer = new System.Timers.Timer();
 
@@ -120,6 +121,7 @@ namespace VoiceAssistantClient
         public static System.Timers.Timer TimeCheckingTimer = new System.Timers.Timer();
 
         System.Timers.Timer UITimer = new System.Timers.Timer();
+        System.Timers.Timer GIFTimer = new System.Timers.Timer();
 
         System.Timers.Timer Phase1Timer = new System.Timers.Timer();
         System.Timers.Timer Phase2Timer = new System.Timers.Timer();
@@ -181,7 +183,7 @@ namespace VoiceAssistantClient
 
         public static SpeechSynthesizer synthesizer = new SpeechSynthesizer(SpeechConfig.FromSubscription("9458ed386eb348cfb85afb8902749d9b", "eastus"));
 
-        public static string IUPath = "MainUI";
+        public static string IUPath = "Neutral";
         public static string GreetingScript = "Press the button or simply say, Hey PIXA to activate me. After you hear the remider sound, then we can start the conversation";
 
         public static string Default2ndUI;
@@ -189,6 +191,12 @@ namespace VoiceAssistantClient
         //public static UpperBodyHelper _motor = new UpperBodyHelper(System.Windows.Forms.Application.StartupPath);
 
         Microsoft.CognitiveServices.Speech.SpeechSynthesizer speaker = new Microsoft.CognitiveServices.Speech.SpeechSynthesizer(SpeechConfig.FromSubscription("3e2ca1b2c988405aa5ed3813caa45677", "eastasia"));
+
+
+        private static DeviceClient s_deviceClient;
+        private static readonly Microsoft.Azure.Devices.Client.TransportType s_transportType = Microsoft.Azure.Devices.Client.TransportType.Mqtt;
+
+        private static string s_connectionString = "HostName=robotnetwork.azure-devices.net;DeviceId=robot1;SharedAccessKey=TOjgoBGwvDPj2MJVMTmG5NxHx+i37cbcA6OJTeZwv1g=";
 
         public enum AppMode
         {
@@ -256,7 +264,10 @@ namespace VoiceAssistantClient
             //UpperBodyHelper.Move("Reset");
             //HeadMotionTimer.Start();
             LoadModel();
-            //BaseHelper.Connect();
+            BaseHelper.Connect();
+
+            
+
 
             Phase5Timer.Interval = 3000;
             Phase5Timer.Elapsed += Phase5Timer_Elapsed;
@@ -279,9 +290,8 @@ namespace VoiceAssistantClient
             Phase2Timer.Start();
 
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-
-
         }
+
 
         private void Phase4Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
@@ -389,7 +399,7 @@ namespace VoiceAssistantClient
 
         private async void Phase2Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
-          
+            
             StartCameraCapture();
         }
 
@@ -406,7 +416,7 @@ namespace VoiceAssistantClient
             if (capture == null)
                 capture = new VideoCapture(CaptureDevice.DShow);
 
-            capture.Open(0);
+            capture.Open(1);
 
             if (capture.IsOpened())
             {
@@ -487,6 +497,7 @@ namespace VoiceAssistantClient
                         }
                    )
              );
+            GIFTimer.Start();
         }
 
         public static bool Task1Lock = false;
@@ -631,6 +642,8 @@ namespace VoiceAssistantClient
                 IniTimer.Stop();
             }
 
+            IOTinit();
+            //sendcommunicationcommand("enable");
         }
 
         private void IniTimer_Elapsed(object sender, ElapsedEventArgs e)
@@ -663,7 +676,6 @@ namespace VoiceAssistantClient
 
             if (faces.Count > 0)
             {
-               
 
             }
 
@@ -860,7 +872,7 @@ namespace VoiceAssistantClient
 
                 if (facedelay)
                 {
-                    facdelayTimer.Interval = 8000;
+                    facdelayTimer.Interval = 25000;
                     facdelayTimer.Elapsed += FacdelayTimer_Elapsed;
                     facdelayTimer.AutoReset = false;
                     facdelayTimer.Start();
@@ -1266,6 +1278,9 @@ namespace VoiceAssistantClient
                 bitmapSource.UriSource = fileUri;
                 bitmapSource.EndInit();
 
+                this.Photo.Visibility = Visibility.Hidden;
+
+
                 Photo.Source = bitmapSource;
             }
                 )
@@ -1537,6 +1552,7 @@ namespace VoiceAssistantClient
                             bitmapSource.UriSource = fileUri;
                             bitmapSource.EndInit();
 
+                            this.Photo.Visibility = Visibility.Visible;
                             this.Photo.Source = bitmapSource;
 
                             this.isShowing = true;
@@ -1674,6 +1690,7 @@ namespace VoiceAssistantClient
 
             targetFaceIds.Clear();
 
+            GIFTimer.Stop();
             UITimer.Start();
 
             if (BroadcastHelper.Broadcasting)
@@ -1776,9 +1793,11 @@ namespace VoiceAssistantClient
 
                         }));
 
+            GIFTimer.Stop();
             UITimer.Start();
 
             UITimer.Stop();
+            GIFTimer.Stop();
 
             //synthesizer.StopSpeakingAsync();
 
@@ -1990,10 +2009,10 @@ namespace VoiceAssistantClient
             this.StopAnyTTSPlayback();
             this.InitSpeechConnector();
 
-            var message = "Press the button, or say 'Hey PIXA' to activate me";
+            var message = "Press the button, or say 'Hey Julee' to activate me";
             if (this.settings.RuntimeSettings.Profile.WakeWordEnabled)
             {
-                message = $"Press the button, or say 'Hey PIXA' to activate me";
+                message = $"Press the button, or say 'Hey Julee' to activate me";
             }
 
             this.UpdateStatus(message);
@@ -2004,6 +2023,11 @@ namespace VoiceAssistantClient
             this.Reset();
             this.UpdateConnectionProfileInfoBlock();
 
+
+            //GlobalData.TourMode = true;
+            //TourHelper.GetTourInfo();
+            //Thread.Sleep(5000);
+            //TourHelper.GoFirstPoint();
 
             //if (BroadcastHelper.Broadcasting == false)
             //{
@@ -2097,7 +2121,7 @@ namespace VoiceAssistantClient
             }
         }
 
-        private void StopAnyTTSPlayback()
+        public void StopAnyTTSPlayback()
         {
             lock (this.playbackStreams)
             {
@@ -2648,7 +2672,7 @@ namespace VoiceAssistantClient
                             bitmapSource.UriSource = fileUri;
                             bitmapSource.EndInit();
 
-                            this.MainUI.Source = null;
+                            this.MainUI.Source = bitmapSource;
                         }
                    )
              );
@@ -2662,6 +2686,7 @@ namespace VoiceAssistantClient
             FaceMaskTimer.AutoReset = false;
             FaceMaskTimer.Start();
 
+            GIFTimer.Stop();
             UITimer.Start();
         }
 
@@ -2975,6 +3000,7 @@ namespace VoiceAssistantClient
 
                                 this.MainUI.Source = bitmapSource;
                             }));
+
                     }
                 }
             }
@@ -3004,6 +3030,7 @@ namespace VoiceAssistantClient
 
                         }));
 
+                GIFTimer.Stop();
                 UITimer.Start();
 
                 e.Handled = true;
@@ -3165,6 +3192,7 @@ namespace VoiceAssistantClient
 
         private void Power_Click(object sender, RoutedEventArgs e)
         {
+            StopCameraCapture();
             Application.Current.Shutdown();
         }
 
@@ -3349,6 +3377,8 @@ namespace VoiceAssistantClient
                 bitmapSource.UriSource = fileUri;
                 bitmapSource.EndInit();
 
+                this.Photo.Visibility = Visibility.Visible;
+
                 this.Photo.Dispatcher.Invoke(
                        new Action(
                             delegate
@@ -3409,8 +3439,25 @@ namespace VoiceAssistantClient
                 {
                     if (chatbotisrunning == false && FaceMaskProcessing == false)
                     {
-                        FaceMaskProcessing = true;
-                        FaceMaskWarning = true;
+                        //FaceMaskProcessing = true;
+                        //FaceMaskWarning = true;
+                        if (BroadcastHelper.Broadcasting == false)
+                        {
+                            if (GlobalData.isNavigating == false && facedelay == false && chatbotisrunning == false)
+                            {
+                                facedelay = true;
+                                Task.Factory.StartNew(() => activateevent());
+                            }
+
+                            if (GlobalData.isNavigating && GlobalData.goallocation == GlobalData.startlocation && GlobalData.personinfront_standby == false && chatbotisrunning == false)
+                            {
+                                Task.Factory.StartNew(() => interactionactivate_event());
+                            }
+                            else if (GlobalData.isNavigating && GlobalData.goallocation != GlobalData.startlocation && GlobalData.personinfront_standby == false && chatbotisrunning == false)
+                            {
+                                Task.Factory.StartNew(() => interactionactivate_event());
+                            }
+                        }
                     }
                     // Task.Factory.StartNew(() => activateevent());
                 }
@@ -3465,5 +3512,295 @@ namespace VoiceAssistantClient
             var filteredBoxes = outputParser.FilterBoundingBoxes(boundingBoxes, 5, 0.5f);
             return filteredBoxes;
         }
+
+        public async void IOTinit()
+        {
+
+            //// Connect to the IoT hub using the MQTT protocol
+            //s_deviceClient = DeviceClient.CreateFromConnectionString(s_connectionString, s_transportType);
+
+            //// Create a handler for the direct method call
+            //await s_deviceClient.SetMethodHandlerAsync("communication", Request, null);
+            //await s_deviceClient.SetMethodHandlerAsync("navigation", Request, null);
+            //await s_deviceClient.SetMethodHandlerAsync("tourmode", Request, null);
+            //await s_deviceClient.SetMethodHandlerAsync("vision", Request, null);
+            //await s_deviceClient.SetMethodHandlerAsync("direction", Request, null);
+            //await s_deviceClient.SetMethodHandlerAsync("chatbotenable", Request, null);
+
+        }
+
+        // Handle the direct method call
+        private Task<MethodResponse> Request(MethodRequest methodRequest, object userContext)
+        {
+            var data = Encoding.UTF8.GetString(methodRequest.Data);
+
+            dynamic subdata = JsonConvert.DeserializeObject(data.ToString());
+
+            switch (methodRequest.Name)
+            {
+                case "navigation":
+                    string goal = subdata.goal.ToString();
+
+                    Debug.WriteLine(goal);
+
+                    GlobalData.isNavigating = true;
+                    GlobalData.RobotisReturning = false;
+                    GlobalData.goallocation = goal;
+                    GlobalData.Navitothegoalposition = true;
+
+                    MainWindow.ChatbotRestartTimer.Stop();
+                    MainWindow.NaviResumeTimer.Stop();
+
+                    if (GlobalData.TourMode)
+                    {
+                        TourHelper.ResumeTimer.Stop();
+                        TourHelper.ReturnTimer.Stop();
+                        TourHelper.TourisInterruptedbyNavi = true;
+                    }
+
+                    BaseHelper.Go(goal);
+
+                    break;
+                case "interaction":
+                    string interactionswitch = subdata.interactionswitch.ToString();
+                    if (interactionswitch == "on")
+                    {
+                        GlobalData.interactionlock = true;
+                    }
+                    else if (interactionswitch == "off")
+                    {
+                        GlobalData.interactionlock = false;
+                    }
+
+                    break;
+                case "direction":
+                    string direction = subdata.movedirection.ToString();
+
+                    if (GlobalData.TourMode)
+                    {
+                        if (!TourHelper.TourisInterruptedbyNavi)
+                        {
+                            if (TourHelper.BacktoStandyLocation == false)
+                            {
+                                TourHelper.ResumeTimer.Interval = 8000;
+                                TourHelper.ResumeTimer.Elapsed += TourHelper.ResumeTimer_Elapsed;
+                                TourHelper.ResumeTimer.AutoReset = false;
+                                TourHelper.ResumeTimer.Start();
+                            }
+                            else if (TourHelper.BacktoStandyLocation == true)
+                            {
+                                TourHelper.ReturnTimer.Interval = 8000;
+                                TourHelper.ReturnTimer.Elapsed += TourHelper.ReturnTimer_Elapsed;
+                                TourHelper.ReturnTimer.AutoReset = false;
+                                TourHelper.ReturnTimer.Start();
+                            }
+                        }
+                    }
+
+                    else
+                    {
+                        //if (GlobalData.TourMode)
+                        //{
+                        //    BaseHelper.CancelNavigation();
+                        //    TourHelper.ResumeTimer.Stop();
+                        //    TourHelper.ReturnTimer.Stop();
+                        //}
+
+                        //BaseHelper.CancelNavigation();
+                        BaseHelper.Move(direction);
+                    }
+
+                    break;
+                case "vision":
+
+                    string modelname = subdata.model.ToString();
+                    string modelswitch = subdata.visionswitch.ToString();
+                    if (modelswitch == "on" || modelswitch == "off")
+                    {
+                        GlobalData.visionswitch(modelname, modelswitch);
+                    }
+                    break;
+                case "chatbot":
+                    string chatbotswitch = subdata.chatbotswitch.ToString();
+                    if (chatbotswitch == "on")
+                    {
+
+                    }
+                    else if (chatbotswitch == "off")
+                    {
+                        this.Reset();
+                        this.UpdateConnectionProfileInfoBlock();
+                    }
+                    break;
+                case "tourmode":
+                    string tourswitch = subdata.tourswitch.ToString();
+                    if (tourswitch == "on")
+                    {
+                        GlobalData.TourMode = true;
+                        TourHelper.GetTourInfo();
+                        TourHelper.GoFirstPoint();
+                        this.StopAnyTTSPlayback();
+                    }
+                    else if (tourswitch == "off")
+                    {
+                        TourHelper.TourCanceled();
+                    }
+                    break;
+                case "announcementmode":
+                    string annmodelswitch = subdata.annmodelswitch.ToString();
+                    if (annmodelswitch == "on")
+                    {
+                        if (BroadcastHelper.Broadcasting == false)
+                        {
+                            BroadcastHelper.RetrieveBroadcastInfo();
+                            ShowImage = true;
+                            BroadcastHelper.StartBroadcasting();
+                        }
+                    }
+                    else if (annmodelswitch == "off")
+                    {
+                        BroadcastHelper.Stop();
+                        ShowDefaultImage = true;
+                    }
+                    break;
+                case "themeselect":
+                    string themename = subdata.themename.ToString();
+                    IUPath = themename;
+                    this.MainUI.Dispatcher.Invoke(
+                   new Action(
+                        delegate
+                        {
+                            string _path = System.Windows.Forms.Application.StartupPath;
+                            string _file = "\\" + IUPath + ".jpg";
+                            _path = _path.Split(new string[] { @"\bin\" }, StringSplitOptions.None)[0];
+                            _path += @"\MainUICustomizeFolder\";
+
+                            Uri fileUri = new Uri(_path + _file);
+                            BitmapImage bitmapSource = new BitmapImage();
+
+                            bitmapSource.BeginInit();
+                            bitmapSource.CacheOption = BitmapCacheOption.None;
+                            bitmapSource.UriSource = fileUri;
+                            bitmapSource.EndInit();
+
+                            this.MainUI.Source = bitmapSource;
+                        }
+                        )
+                    );
+                    break;
+                case "announcement":
+                    string script = subdata.robotscript.ToString();
+                    GlobalData.broadcastscript = script;
+                    break;
+                case "pathroutine":
+                    string path = subdata.path.ToString();
+
+                    GlobalData.TourMode = true;
+                    TourHelper.GetTourInfo(path);
+                    TourHelper.GoFirstPoint();
+                    break;
+                case "broadcast":
+                    string broadcastswitch = subdata.broadcastswitch.ToString();
+                    if (BroadcastHelper.Broadcasting == false && broadcastswitch == "on")
+                    {
+                        BroadcastHelper.RetrieveBroadcastInfo();
+                        ShowImage = true;
+                        BroadcastHelper.StartBroadcasting();
+                    }
+                    else if (BroadcastHelper.Broadcasting == true && broadcastswitch == "off")
+                    {
+                        BroadcastHelper.Stop();
+                        ShowDefaultImage = true;
+                    }
+                    break;
+                case "communication":
+                    string communicationstswitch = subdata.status.ToString();
+                    if (communicationstswitch == "enable")
+                    {
+                        this.MainUI.Dispatcher.Invoke(
+                   new Action(
+                        delegate
+                        {
+                            this.Topmost = false;
+
+                            this.WindowState = WindowState.Minimized;
+                        }
+                        )
+                        );
+
+                        Debug.WriteLine("enable");
+                        //sendcommunicationcommand("enable");
+
+                    }
+                    else if (communicationstswitch == "disable")
+                    {
+                        //sendcommunicationcommand("disable");
+                        this.MainUI.Dispatcher.Invoke(
+                   new Action(
+                        delegate
+                        {
+                            this.Topmost = true;
+                            this.WindowState = WindowState.Maximized;
+                        }
+                        )
+                        );
+                       //MessageBox.Show("disable");
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            // Acknowlege the direct method call with a 200 success message
+            string result = $"{{\"result\":\"Executed direct method: {methodRequest.Name}\"}}";
+            return Task.FromResult(new MethodResponse(Encoding.UTF8.GetBytes(result), 200));
+
+        }
+
+        private static ServiceClient s_serviceClient;
+
+        private async static Task CommunicationInvokeMethodAsync(string status)
+        {
+            var methodInvocation = new CloudToDeviceMethod("communication")
+            {
+
+                ResponseTimeout = TimeSpan.FromSeconds(30),
+            };
+
+            if (status == "enable")
+            {
+                methodInvocation.SetPayloadJson("{\"status\": \"enable\"}");
+            }
+            else if (status == "disable")
+            {
+                methodInvocation.SetPayloadJson("{\"status\": \"disable\"}");
+            }
+
+            try
+            {
+                // Invoke the direct method asynchronously and get the response from the simulated device.
+                var response = await s_serviceClient.InvokeDeviceMethodAsync("head1", methodInvocation);
+
+                Debug.WriteLine($"\nResponse status: {response.Status}, payload:\n\t{response.GetPayloadAsJson()}");
+            }
+
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+            }
+        }
+
+        private static string service_connectionString = "HostName=robotnetwork.azure-devices.net;SharedAccessKeyName=service;SharedAccessKey=epdTWXHqZZhN8+l4I2mTTOoxjXQt+DAKfVlMILk+n8o=";
+
+        public async static void sendcommunicationcommand(string status)
+        {
+
+            s_serviceClient = ServiceClient.CreateFromConnectionString(service_connectionString);
+
+            await CommunicationInvokeMethodAsync(status);
+
+            s_serviceClient.Dispose();
+        }
+
     }
 }
